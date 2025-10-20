@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Helmet Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Helmet Detection System</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <label for="imageUpload" class="upload-label">Choose an image</label>
+            <input type="file" name="image" id="imageUpload" accept="image/*" required onchange="previewImage(event)">
+            <button type="submit">Predict</button>
+        </form>
+
+        <div class="preview-section">
+            {% if uploaded_image %}
+                <img id="preview" src="{{ url_for('static', filename='../uploads/' ~ uploaded_image) }}" alt="Uploaded Image">
+                <div class="result">
+                    <h2>Prediction: <span>{{ prediction }}</span></h2>
+                   
+                </div>
+            {% else %}
+                <img id="preview" style="display:none;" />
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                const output = document.getElementById('preview');
+                output.src = reader.result;
+                output.style.display = 'block';
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+</body>
+</html>
