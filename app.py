@@ -1,52 +1,41 @@
-from flask import Flask, render_template, request
+# streamlit_helmet_app.py
+
+import streamlit as st
+import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
-import numpy as np
-import os
-import uuid
+from PIL import Image
+import io
 
-app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+st.set_page_config(page_title="Helmet Detection", layout="centered")
+st.title("🪖 Helmet Detection")
+st.write("Upload an image to check if a person is wearing a helmet.")
 
-# Load trained model
-model = load_model('Downloads/Project3/helmet_model.h5')
+# Load model
+model = load_model('Model/helmet_model.h5')  # Update path if needed
 IMG_SIZE = 128
-CLASS_NAMES = ['Dont Wear Helmet', 'Wear Helmet']  # Update if needed
+CLASS_NAMES = ['Dont Wear Helmet', 'Wear Helmet']
 
-# Ensure uploads folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def predict_image(image_path):
-    img = load_img(image_path, target_size=(IMG_SIZE, IMG_SIZE))
-    img_array = img_to_array(img) / 255.0
+def predict_image(img):
+    img = img.resize((IMG_SIZE, IMG_SIZE))
+    img_array = np.array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
     predictions = model.predict(img_array)
     class_index = np.argmax(predictions)
-    confidence = float(predictions[0][class_index])
+    return CLASS_NAMES[class_index]
 
-    return CLASS_NAMES[class_index], confidence
+# Upload image
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    prediction = None
-    confidence = None
-    uploaded_image = None
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+    
+    if st.button("Predict"):
+        try:
+            result = predict_image(image)
+            st.success(f"Prediction: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-    if request.method == 'POST':
-        file = request.files['image']
-        if file:
-            filename = f"{uuid.uuid4().hex}_{file.filename}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-
-            label, conf = predict_image(filepath)
-            prediction = label
-            confidence = round(conf * 100, 2)
-            uploaded_image = filename
-
-    return render_template('index.html', prediction=prediction, confidence=confidence, uploaded_image=uploaded_image)
-
-if __name__ == '__main__':
-    app.run(debug=True)
