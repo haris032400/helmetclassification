@@ -12,7 +12,7 @@ st.title("🪖 Helmet Detection")
 st.write("Upload an image to check if a person is wearing a helmet.")
 
 # Load model
-model = load_model('Model/helmet_model.h5')  # Update path if needed
+model = load_model('helmet_model.h5')  # Update path if needed
 IMG_SIZE = 128
 CLASS_NAMES = ['Dont Wear Helmet', 'Wear Helmet']
 
@@ -38,4 +38,5 @@ if uploaded_file is not None:
             st.success(f"Prediction: {result}")
         except Exception as e:
             st.error(f"Error: {e}")
+
 
